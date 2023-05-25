@@ -53,7 +53,7 @@ pipeline {
         stage('Deploy') {
            steps {
                 sh 'docker container rm -f spring-with-maven || true'
-                sh 'docker run --name spring-with-maven -d -p 3500:3000 $IMAGE_NAME'
+                sh 'docker run --name spring-with-maven -d -p 8080:8080 $IMAGE_NAME'
            }
         }
     }
