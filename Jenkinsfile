@@ -11,7 +11,7 @@ pipeline {
     }
     environment {
       DOCKERHUB_CREDENTIALS = credentials('Credentials')
-      IMAGE_NAME = 'ivanmihaylov/zadacha'
+      IMAGE_NAME = 'ivanmihaylov/zadachatest'
     }
     stages {
         stage('Clean') {
