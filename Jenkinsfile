@@ -2,67 +2,58 @@ pipeline {
     agent {
         label 'my-ssh-agent-2'
     }
-
     tools {
-        nodejs 'nodejs'
-        maven 'maven' // Assuming 'maven' is the configured Maven installation name in Jenkins
+        maven 'maven'
         dockerTool 'docker'
     }
-
     triggers {
         githubPush()
     }
-
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('my_dockerhub_creds')
-        IMAGE_NAME = 'ivanmihaylov/mynodejsapp'
+      DOCKERHUB_CREDENTIALS = credentials('Credentials')
+      IMAGE_NAME = 'ivanmihaylov/zadacha'
     }
-
     stages {
-        stage('Clone Repository') {
+        stage('Clean') {
+            steps {
+                cleanWs()
+            }
+        }
+        stage('Clone Repo') {
             steps {
                 git branch: 'main', url: 'https://github.com/imichailov/spring-with-maven.git'
             }
         }
-
-        stage('Build Application') {
+        stage('Build') {
             steps {
                 sh 'mvn clean install'
             }
         }
-
-        stage('Test Application') {
+        stage('Test') {
             steps {
                 sh 'mvn test'
             }
         }
-
-        stage('Build and Tag Docker Image') {
+    stage('Docker login'){
+           steps {
+               sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR  -p $DOCKERHUB_CREDENTIALS_PSW'
+       }
+        }
+        stage('Docker build and tag'){
             steps {
-                sh 'docker build -t ${IMAGE_NAME} -f dockerfile .'
+                sh 'docker build -t ${IMAGE_NAME} -f Dockerfile .'
                 sh 'docker tag ${IMAGE_NAME} ${IMAGE_NAME}:${BUILD_NUMBER}'
             }
         }
-
-        stage('Push Docker Image') {
+    stage('Docker Push'){
             steps {
-                sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW'
-                sh 'docker push ${IMAGE_NAME}:${BUILD_NUMBER}'
+              sh 'docker push ${IMAGE_NAME}:${BUILD_NUMBER}'
             }
         }
-
-        stage('Deploy Docker Image') {
-            steps {
-                sh 'pkill node | true'
-                sh 'npm install -g forever'
-                sh 'forever start src/index.js'
-            }
-        }
-    }
-
-    post {
-        always {
-            cleanWs()
+        stage('Deploy') {
+           steps {
+                sh 'docker run -d -p port:8080 ${IMAGE_NAME}:${BUILD_NUMBER}'
+           }
         }
     }
 }
