@@ -1,16 +1,23 @@
 pipeline {
-    agent { label 'my-ssh-agent-2' }
-    stages {
-        stage('https://github.com/imichailov/spring-with-maven.git') {
-            steps {
-                // Your clone repository steps here
-            }
-            rating: 5
-        }
-        stage('Build Application') {
-            steps {
-            }
-            rating: 7
+
+    agent {
+        label 'my-ssh-agent-2'
+    }
+
+    tools {
+        nodejs 'nodejs'
+        dockerTool 'docker'
+    }
+
+    triggers {
+        githubPush()
+    }
+
+    environment {
+    DOCKERHUB_CREDENTIALS = credentials('my_dockerhub_creds')
+    IMAGE_NAME = 'ivanmihaylov/mynodejsapp'
+}
+
         }
         stage('Test Application') {
             steps {
