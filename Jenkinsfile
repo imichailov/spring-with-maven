@@ -5,7 +5,7 @@ pipeline {
 
     tools {
         nodejs 'nodejs'
-        maven 'maven'
+        maven 'maven' // Assuming 'maven' is the configured Maven installation name in Jenkins
         dockerTool 'docker'
     }
 
