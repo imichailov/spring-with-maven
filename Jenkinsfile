@@ -1,7 +1,7 @@
 pipeline {
     agent { label 'my-ssh-agent-2' }
     stages {
-        stage('https://github.com/imichailov/spring-with-maven.git) {
+        stage('https://github.com/imichailov/spring-with-maven.git') {
             steps {
                 // Your clone repository steps here
             }
