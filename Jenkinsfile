@@ -10,7 +10,7 @@ pipeline {
         githubPush()
     }
     environment {
-      DOCKERHUB_CREDENTIALS = credentials('Credentials')
+      DOCKERHUB_CREDENTIALS = credentials('my_dockerhub_creds')
       IMAGE_NAME = 'ivanmihaylov/zadachatest'
     }
     stages {
