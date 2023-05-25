@@ -1,58 +1,61 @@
 pipeline {
     agent {
-        label 'static-slave'
+        label 'my-ssh-agent-2'
     }
 
     tools {
-        maven 'maven'
-        docker 'docker'
+        nodejs 'nodejs'
+        dockerTool 'docker'
+    }
+
+    triggers {
+        githubPush()
+    }
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('my_dockerhub_creds')
+        IMAGE_NAME = 'ivanmihaylov/mynodejsapp'
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-username/spring-with-maven.git'
+                git branch: 'main', url: 'https://github.com/imichailov/spring-with-maven.git'
             }
-            rating: 5
         }
 
         stage('Build Application') {
             steps {
                 sh 'mvn clean install'
             }
-            rating: 7
         }
 
         stage('Test Application') {
             steps {
                 sh 'mvn test'
             }
-            rating: 7
         }
 
         stage('Build and Tag Docker Image') {
             steps {
-                sh 'docker build -t my-docker-image .'
-                sh 'docker tag my-docker-image my-docker-image:${BUILD_NUMBER}'
+                sh 'docker build -t ${IMAGE_NAME} -f dockerfile .'
+                sh 'docker tag ${IMAGE_NAME} ${IMAGE_NAME}:${BUILD_NUMBER}'
             }
-            rating: 6
         }
 
         stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'my-dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-                }
-                sh 'docker push my-docker-image:${BUILD_NUMBER}'
+                sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW'
+                sh 'docker push ${IMAGE_NAME}:${BUILD_NUMBER}'
             }
-            rating: 6
         }
 
         stage('Deploy Docker Image') {
             steps {
-                // Your deployment steps here
+                sh 'pkill node | true'
+                sh 'npm install -g forever'
+                sh 'forever start src/index.js'
             }
-            rating: 7
         }
     }
 
@@ -60,6 +63,5 @@ pipeline {
         always {
             cleanWs()
         }
-        rating: 5
     }
 }
